@@ -1,0 +1,519 @@
+{
+  "name": "Woocommerce - Qdrant Synchronizer",
+  "nodes": [
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.embed_text }}\n{{ $json.name }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "product_id",
+                "value": "={{ $json.product_id }}"
+              },
+              {
+                "name": "sku",
+                "value": "={{ $json.sku }}"
+              },
+              {
+                "name": "price",
+                "value": "={{ $json.price }}"
+              },
+              {
+                "name": "stock_status",
+                "value": "={{ $json.stock_status }}"
+              },
+              {
+                "name": "permalink",
+                "value": "={{ $json.permalink }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        2096,
+        -288
+      ],
+      "id": "9763c69d-5bd9-4af1-a596-3ae821fe0114",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "quote-n8n",
+          "mode": "list",
+          "cachedResultName": "quote-n8n"
+        },
+        "embeddingBatchSize": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        1984,
+        -560
+      ],
+      "id": "cab8e3e8-5a7a-4cdb-85f8-b0bcef1b8c87",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a786212-570a-43a8-839e-6c9b6ca52695",
+              "name": "embed_text",
+              "value": "={{ $('Prepare Products').item.json.embed_text }}",
+              "type": "string"
+            },
+            {
+              "id": "26f352a9-b0a4-447b-9b8a-a134ad4ea055",
+              "name": "product_id",
+              "value": "={{ $('Prepare Products').item.json.product_id }}",
+              "type": "number"
+            },
+            {
+              "id": "77870a9b-b364-4a36-80cc-ff5e703d83d5",
+              "name": "name",
+              "value": "={{ $('Prepare Products').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "711b16b7-75cd-4949-be91-9bd3fe2fd4b0",
+              "name": "sku",
+              "value": "={{ $('Prepare Products').item.json.sku }}",
+              "type": "string"
+            },
+            {
+              "id": "facf2593-42f3-4f15-bf79-626e6348e557",
+              "name": "price",
+              "value": "={{ $('Prepare Products').item.json.price }}",
+              "type": "string"
+            },
+            {
+              "id": "7eea861e-2bd0-46fc-841b-a209c4f48b11",
+              "name": "stock_status",
+              "value": "={{ $('Prepare Products').item.json.stock_status }}",
+              "type": "string"
+            },
+            {
+              "id": "5a3fce40-d4a5-48cb-99ee-1a778bae7939",
+              "name": "permalink",
+              "value": "={{ $('Prepare Products').item.json.permalink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1776,
+        -560
+      ],
+      "id": "f7623819-c456-498e-b583-9f4f89c2a704",
+      "name": "Restore Product Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333/collections/quote-n8n/points/delete?wait=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filter: { must: [ { key: \"metadata.product_id\", match: { any: $input.all().map(i => i.json.product_id) } } ] } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1328,
+        -192
+      ],
+      "id": "63beac01-71f6-4dd0-afd5-903e42cc99c3",
+      "name": "Remove Vectors Only",
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333/collections/quote-n8n/points/delete?wait=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filter: { must: [ { key: \"metadata.product_id\", match: { any: $input.all().map(i => i.json.product_id) } } ] } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1552,
+        -560
+      ],
+      "id": "48df779d-4688-4c92-aeab-30ee132f3c2d",
+      "name": "Delete Old Vectors",
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "del-pid-1",
+              "name": "product_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        -192
+      ],
+      "id": "b9bad3d5-dfd3-4552-a8db-b7abab1d06ee",
+      "name": "Prepare Deleted Product"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "pub-check-1",
+              "leftValue": "={{ $json.publishable }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        -464
+      ],
+      "id": "6b80f1f6-a8a7-4bd4-8843-fec4ffc271ef",
+      "name": "Still Publishable?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Works for a single product (webhook payload) or the whole catalog\n// (FULL RESYNC). Instead of dropping non-publishable products here, we tag\n// them, so their old vectors still get cleaned up downstream.\nconst strip = (html = '') =>\n  String(html)\n    .replace(/<[^>]*>/g, ' ')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&#\\d+;/g, ' ')\n    .replace(/&[a-z]+;/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\nreturn $input.all()\n  .filter(i => i.json && i.json.id)\n  .map(item => {\n    const p = item.json;\n\n    const categories = (p.categories || []).map(c => c.name);\n    const tags       = (p.tags || []).map(t => t.name);\n    const attributes = (p.attributes || [])\n      .map(a => `${a.name}: ${(a.options || []).join(', ')}`);\n\n    const sourced = p.status === 'private';\n\n    const embed_text = [\n      p.name,\n      p.sku && !p.sku.startsWith('EXT-') ? `SKU ${p.sku}` : null,\n      categories.length ? categories.join(' ') : null,\n      tags.length ? tags.join(' ') : null,\n      attributes.length ? attributes.join(' ') : null,\n      strip(p.short_description).slice(0, 200) || null,\n    ].filter(Boolean).join(' | ');\n\n    return {\n      json: {\n        embed_text,\n        publishable:    ['publish', 'private'].includes(p.status),\n        product_id:     p.id,\n        name:           p.name,\n        sku:            p.sku || '',\n        type:           p.type,\n        status:         p.status,\n        sourced,\n        price:          p.price || '',\n        regular_price:  p.regular_price || '',\n        sale_price:     p.sale_price || '',\n        stock_status:   p.stock_status,\n        stock_quantity: p.stock_quantity,\n        permalink:      p.permalink,\n        categories,\n        has_variations: (p.variations || []).length > 0,\n        variation_ids:  p.variations || [],\n      },\n    };\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -464
+      ],
+      "id": "d0b6e3a9-b4d5-4b21-8a90-e99a3b2c5cf0",
+      "name": "Prepare Products"
+    },
+    {
+      "parameters": {
+        "event": "product.updated"
+      },
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -560
+      ],
+      "id": "11857cba-a25c-4e14-8578-adefaf8af048",
+      "name": "Product Updated",
+      "webhookId": "2cf567e4-17a4-49b9-a2dc-7c2e0dd81c98",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "jKoth0yRRjhuDLmQ",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "event": "product.deleted"
+      },
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -192
+      ],
+      "id": "5f327e75-32cc-4e61-aa56-df41ec9bbe15",
+      "name": "Product Deleted",
+      "webhookId": "6dd8a4f7-e3d8-42c6-9d84-0e3d09f91bb1",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "jKoth0yRRjhuDLmQ",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "event": "product.created"
+      },
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -384
+      ],
+      "id": "ab21922e-6825-4b7e-9261-1088105f1132",
+      "name": "Product Created",
+      "webhookId": "1ac88a8e-3adf-4c47-98b6-785a6641a282",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "jKoth0yRRjhuDLmQ",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "f89c355f-e5ba-4ea1-b3ff-468311ef9555",
+      "name": "Get many products",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "jKoth0yRRjhuDLmQ",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "501fba48-d6ff-4678-8c5d-80954d009bb2",
+      "name": "FULL RESYNC — Click Execute"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        -240
+      ],
+      "id": "f4e2963e-8c51-45ce-be06-396fee907800",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "OBObPkFtIDSSZSKq",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Product Fields": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Old Vectors": {
+      "main": [
+        [
+          {
+            "node": "Restore Product Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Deleted Product": {
+      "main": [
+        [
+          {
+            "node": "Remove Vectors Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still Publishable?": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Vectors",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Vectors Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Products": {
+      "main": [
+        [
+          {
+            "node": "Still Publishable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Updated": {
+      "main": [
+        [
+          {
+            "node": "Prepare Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Deleted": {
+      "main": [
+        [
+          {
+            "node": "Prepare Deleted Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Created": {
+      "main": [
+        [
+          {
+            "node": "Prepare Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many products": {
+      "main": [
+        [
+          {
+            "node": "Prepare Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FULL RESYNC — Click Execute": {
+      "main": [
+        [
+          {
+            "node": "Get many products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "76bf409c-7617-44fa-a59c-21844c82fe27",
+  "meta": {
+    "instanceId": "52325baf04ae140d1b29d541a54350d05b9bc49f33023768280c7b26ec0c0326"
+  },
+  "nodeGroups": [],
+  "id": "uSVD5GxnKiXrYbYl",
+  "tags": []
+}

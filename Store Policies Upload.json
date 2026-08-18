@@ -1,0 +1,431 @@
+{
+  "name": "Store Policies Upload",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "basicAuth",
+        "formTitle": "Store knowledge base",
+        "formDescription": "Upload your store policies, About us, shipping and returns information, or an FAQ. The WhatsApp assistant will use these to answer customer questions. Uploading a document with a title that already exists replaces the old version.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Document title",
+              "placeholder": "Return policy",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Category",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Policies"
+                  },
+                  {
+                    "option": "About us"
+                  },
+                  {
+                    "option": "Shipping & delivery"
+                  },
+                  {
+                    "option": "Returns & refunds"
+                  },
+                  {
+                    "option": "Payment"
+                  },
+                  {
+                    "option": "FAQ"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Document",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf,.docx,.txt,.md,.csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "5dfccbb8-3234-47e4-a08a-c5dd9d82fc31",
+      "name": "Upload Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        2336,
+        528
+      ],
+      "webhookId": "222ad0c9-c95e-4876-9a38-1de790cb6307",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "0fSn12eMegLn56HP",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "kb1",
+              "name": "qdrantUrl",
+              "value": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333",
+              "type": "string"
+            },
+            {
+              "id": "kb2",
+              "name": "collection",
+              "value": "n8n-woocommerce-policies",
+              "type": "string"
+            },
+            {
+              "id": "kb3",
+              "name": "doc_title",
+              "value": "={{ $json['Document title'] }}",
+              "type": "string"
+            },
+            {
+              "id": "kb4",
+              "name": "category",
+              "value": "={{ $json.Category }}",
+              "type": "string"
+            },
+            {
+              "id": "kb5",
+              "name": "uploaded_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "09e2e0ae-88f6-4fec-a090-349209b543f1",
+      "name": "KB Config — EDIT ME",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2560,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('KB Config — EDIT ME').item.json.qdrantUrl }}/collections/{{ $('KB Config — EDIT ME').item.json.collection }}/index?wait=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ field_name: 'metadata.doc_title', field_schema: 'keyword' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "da25ab2c-8424-44b0-bba6-6ed881c32ca3",
+      "name": "Ensure Doc-Title Index",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2800,
+        528
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Qdrant only allows filtering on payload fields that have an index. Deleting the previous version of a document filters by metadata.doc_title, so this node makes sure the keyword index exists. It is idempotent: re-creating an existing index is a no-op. On the very first run against a brand-new collection it may fail because the collection does not exist yet — that is fine, the insert step creates the collection and every later run will create the index."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('KB Config — EDIT ME').item.json.qdrantUrl }}/collections/{{ $('KB Config — EDIT ME').item.json.collection }}/points/delete?wait=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "qdrantApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filter: { must: [ { key: 'metadata.doc_title', match: { value: $('KB Config — EDIT ME').item.json.doc_title } } ] } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "58d781ab-c678-40f5-b813-411ba3161809",
+      "name": "Remove Previous Version",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3056,
+        432
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Deletes any chunks previously stored under the same document title so re-uploading a document replaces it instead of duplicating it. Needs the keyword index on metadata.doc_title (created by the previous node)."
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "n8n-woocommerce-policies",
+          "mode": "list",
+          "cachedResultName": "n8n-woocommerce-policies"
+        },
+        "embeddingBatchSize": 100,
+        "options": {}
+      },
+      "id": "73d612ad-0edc-4551-ac2b-ff01cdee3511",
+      "name": "Qdrant — Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        3520,
+        528
+      ],
+      "credentials": {
+        "qdrantApi": {
+          "id": "hr9diS9lk4umgh9s",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// The vector store emits one item per stored chunk. Report the upload back\n// to the person who submitted the form as a single readable result.\nconst cfg = $('KB Config — EDIT ME').first().json;\n\nreturn [{\n  json: {\n    status: 'stored',\n    document: cfg.doc_title,\n    category: cfg.category,\n    chunks_stored: $input.all().length,\n    collection: cfg.collection,\n    uploaded_at: cfg.uploaded_at,\n    message: 'Uploaded. The assistant can now answer questions from this document.',\n  },\n}];"
+      },
+      "id": "e94e35d9-ad64-4430-824c-3d2b3ae7bdaa",
+      "name": "Upload Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3856,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "doc_title",
+                "value": "={{ $('KB Config — EDIT ME').item.json.doc_title }}"
+              },
+              {
+                "name": "category",
+                "value": "={{ $('KB Config — EDIT ME').item.json.category }}"
+              },
+              {
+                "name": "uploaded_at",
+                "value": "={{ $('KB Config — EDIT ME').item.json.uploaded_at }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "0690f2c0-ebd7-40cf-bdc4-bcb2c5c79eaf",
+      "name": "Document Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        3712,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "dcccbb9b-99da-42dc-aa84-fa19586d281c",
+      "name": "Split Into Chunks",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        3696,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "f0ed6611-5f84-4f40-b56f-9c0a0fbf1a81",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3472,
+        816
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "OBObPkFtIDSSZSKq",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "id": "70a73944-6694-43b1-8ff1-48ce13781cf4",
+      "name": "Reattach File After Cleanup",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3248,
+        528
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload Form": {
+      "main": [
+        [
+          {
+            "node": "KB Config — EDIT ME",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KB Config — EDIT ME": {
+      "main": [
+        [
+          {
+            "node": "Ensure Doc-Title Index",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reattach File After Cleanup",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ensure Doc-Title Index": {
+      "main": [
+        [
+          {
+            "node": "Remove Previous Version",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Previous Version": {
+      "main": [
+        [
+          {
+            "node": "Reattach File After Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant — Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Upload Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant — Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant — Knowledge Base",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Chunks": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Document Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reattach File After Cleanup": {
+      "main": [
+        [
+          {
+            "node": "Qdrant — Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bbaecc01-2dd0-4725-960f-168f1c7271bb",
+  "meta": {
+    "instanceId": "52325baf04ae140d1b29d541a54350d05b9bc49f33023768280c7b26ec0c0326"
+  },
+  "nodeGroups": [],
+  "id": "muIDRmwHaffAFZ3c",
+  "tags": []
+}
