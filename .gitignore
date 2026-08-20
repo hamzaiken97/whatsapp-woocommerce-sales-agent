@@ -1,0 +1,12 @@
+# Environment variables with real secrets and deployment-specific values
+.env
+.env.local
+.env.*.local
+
+# n8n local data (if ever present)
+/.n8n
+
+# macOS / editor noise
+.DS_Store
+*.swp
+*.swo

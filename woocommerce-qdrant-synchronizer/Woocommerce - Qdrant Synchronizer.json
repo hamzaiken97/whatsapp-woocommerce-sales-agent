@@ -46,9 +46,9 @@
         "mode": "insert",
         "qdrantCollection": {
           "__rl": true,
-          "value": "quote-n8n",
+          "value": "woocommerce-products",
           "mode": "list",
-          "cachedResultName": "quote-n8n"
+          "cachedResultName": "woocommerce-products"
         },
         "embeddingBatchSize": 100,
         "options": {}
@@ -130,7 +130,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333/collections/quote-n8n/points/delete?wait=true",
+        "url": "https://your-cluster-id.cloud.qdrant.io:6333/collections/woocommerce-products/points/delete?wait=true",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "qdrantApi",
         "sendBody": true,
@@ -156,7 +156,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333/collections/quote-n8n/points/delete?wait=true",
+        "url": "https://your-cluster-id.cloud.qdrant.io:6333/collections/woocommerce-products/points/delete?wait=true",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "qdrantApi",
         "sendBody": true,

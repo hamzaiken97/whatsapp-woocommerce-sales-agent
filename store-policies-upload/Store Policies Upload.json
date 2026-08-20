@@ -77,13 +77,13 @@
             {
               "id": "kb1",
               "name": "qdrantUrl",
-              "value": "https://8e1b7b17-71da-41a3-a607-8f1036316aa2.eu-central-1-0.aws.cloud.qdrant.io:6333",
+              "value": "https://your-cluster-id.cloud.qdrant.io:6333",
               "type": "string"
             },
             {
               "id": "kb2",
               "name": "collection",
-              "value": "n8n-woocommerce-policies",
+              "value": "woocommerce-policies",
               "type": "string"
             },
             {
@@ -193,9 +193,9 @@
         "mode": "insert",
         "qdrantCollection": {
           "__rl": true,
-          "value": "n8n-woocommerce-policies",
+          "value": "woocommerce-policies",
           "mode": "list",
-          "cachedResultName": "n8n-woocommerce-policies"
+          "cachedResultName": "woocommerce-policies"
         },
         "embeddingBatchSize": 100,
         "options": {}

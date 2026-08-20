@@ -1,11 +1,11 @@
 {
-  "name": "My workflow 3",
+  "name": "Woocommerce Sales Agent",
   "nodes": [
     {
       "parameters": {
         "toolDescription": "Creates a real order in the store and saves the buyer's details. Only call this after the customer has explicitly confirmed the complete order back to you. Call it exactly once per order. Every field is required.",
         "method": "POST",
-        "url": "https://resercho.com/wp-json/wc/v3/orders",
+        "url": "https://your-store.com/wp-json/wc/v3/orders",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "wooCommerceApi",
         "sendBody": true,
@@ -34,9 +34,9 @@
         "toolDescription": "Answers questions about the store itself rather than about products: delivery times and costs, payment methods, returns, refunds, warranty, opening hours, location, and general company information. Pass the customer's question in their own words, in any language. Returns excerpts from the store's own policy and FAQ documents.",
         "qdrantCollection": {
           "__rl": true,
-          "value": "n8n-woocommerce-policies",
+          "value": "woocommerce-policies",
           "mode": "list",
-          "cachedResultName": "n8n-woocommerce-policies"
+          "cachedResultName": "woocommerce-policies"
         },
         "options": {}
       },
@@ -61,9 +61,9 @@
         "toolDescription": "Semantic search over the store's product catalog. Pass a short natural-language description of what the customer wants, in any language. Returns the closest catalog entries as text, each with a metadata block containing product_id, sku, price, stock_status and permalink. Always call this before recommending or ordering anything, and use only product_id values returned here when creating an order.",
         "qdrantCollection": {
           "__rl": true,
-          "value": "quote-n8n",
+          "value": "woocommerce-products",
           "mode": "list",
-          "cachedResultName": "quote-n8n"
+          "cachedResultName": "woocommerce-products"
         },
         "topK": 5,
         "options": {}
@@ -145,7 +145,7 @@
     },
     {
       "parameters": {
-        "model": "minimax/minimax-m3",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
         "options": {}
       },
       "id": "76b0c33c-2d4a-40e5-b6f4-8dd6a6473758",
@@ -364,7 +364,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "af0ab286-e589-4cda-bcb8-ad21fa65be06",
+  "versionId": "195dbfe4-1b3c-4821-a760-36b7a1330fd8",
   "meta": {
     "instanceId": "52325baf04ae140d1b29d541a54350d05b9bc49f33023768280c7b26ec0c0326"
   },
