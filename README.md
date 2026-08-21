@@ -38,6 +38,12 @@ Both Qdrant collections use **1536 dimensions / Cosine** to match
 3. **Sales Agent** — wire OpenRouter, embeddings, Qdrant, WooCommerce and Evolution API,
    regenerate the secret webhook path, activate. → [README](whatsapp-woocommerce-sales-agent/README.md)
 
+> ⚠️ **Important:** The Sales Agent cannot search products until the Qdrant Synchronizer
+> has populated the `woocommerce-products` collection. After activating the synchronizer,
+> open the workflow and execute the **FULL RESYNC — Click Execute** node once. This pulls
+> every product from WooCommerce, embeds it, and inserts the vectors into Qdrant. After
+> that initial run, product changes are synced automatically via webhooks.
+
 Each folder's README has the full step-by-step configuration for its workflow, including
 the credentials to create in n8n and `curl` snippets for the Qdrant collections.
 
